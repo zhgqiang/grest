@@ -5,10 +5,10 @@ import (
 	"strings"
 	"strconv"
 	"encoding/json"
-
-	"github.com/emicklei/go-restful"
 	"reflect"
 	"fmt"
+
+	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful-openapi"
 )
 

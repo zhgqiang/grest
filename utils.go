@@ -1,20 +1,20 @@
 package etrest
 
 import (
-	"database/sql/driver"
 	"fmt"
-	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"reflect"
 	"regexp"
 	"runtime"
-	"runtime/debug"
 	"sort"
 	"time"
 	"bytes"
 	"strings"
+	"net/url"
+	"net/http"
+	"runtime/debug"
+	"database/sql/driver"
 
 	"github.com/gosimple/slug"
 	"github.com/jinzhu/gorm"

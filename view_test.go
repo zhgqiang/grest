@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 	"time"
-	"encoding/json"
 	"strconv"
+	"encoding/json"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
