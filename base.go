@@ -1,4 +1,4 @@
-package etrest
+package grest
 
 type View interface {
 	FindMany(interface{}, map[string]interface{}, *Context) (int, error)

@@ -1,4 +1,4 @@
-package etrest
+package grest
 
 type DeleteMsg struct {
 	Count int `json:"count" description:"delete count"`

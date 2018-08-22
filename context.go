@@ -1,8 +1,8 @@
-package etrest
+package grest
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/emicklei/go-restful"
+	"github.com/jinzhu/gorm"
 )
 
 type Context struct {

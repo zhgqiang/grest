@@ -1,13 +1,13 @@
-package etrest
+package grest
 
 import (
-	"path"
+	"encoding/json"
 	"log"
 	"os"
+	"path"
+	"strconv"
 	"testing"
 	"time"
-	"strconv"
-	"encoding/json"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"

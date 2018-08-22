@@ -1,9 +1,9 @@
-package etrest
+package grest
 
 import (
 	"errors"
-	"strings"
 	"fmt"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 )

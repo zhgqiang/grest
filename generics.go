@@ -1,12 +1,12 @@
-package etrest
+package grest
 
 import (
-	"net/http"
-	"strings"
-	"strconv"
 	"encoding/json"
-	"reflect"
 	"fmt"
+	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
 
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful-openapi"

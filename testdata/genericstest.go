@@ -1,20 +1,20 @@
 package main
 
 import (
-	"time"
-	"os"
-	"path"
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"path"
+	"time"
 
-	"github.com/jinzhu/gorm"
-	"github.com/go-openapi/spec"
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful-openapi"
+	"github.com/go-openapi/spec"
+	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 
-	"etstone.cn/etrest"
+	"github.com/zhgqiang/grest"
 )
 
 type User struct {
@@ -69,7 +69,7 @@ func main() {
 	}
 
 	restful.DefaultContainer.Add(restfulspec.NewOpenAPIService(config))
-	http.Handle("/apidocs/", http.StripPrefix("/apidocs/", http.FileServer(http.Dir(path.Join(etrest.AppRoot, "swagger")))))
+	http.Handle("/apidocs/", http.StripPrefix("/apidocs/", http.FileServer(http.Dir(path.Join(grest.AppRoot, "swagger")))))
 	log.Printf("接口访问地址: http://%s/apidocs \n", serviceUrl)
 	log.Panic(http.ListenAndServe(serviceUrl, nil))
 }

@@ -1,20 +1,20 @@
-package etrest
+package grest
 
 import (
+	"bytes"
+	"database/sql/driver"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"reflect"
 	"regexp"
 	"runtime"
-	"sort"
-	"time"
-	"bytes"
-	"strings"
-	"net/url"
-	"net/http"
 	"runtime/debug"
-	"database/sql/driver"
+	"sort"
+	"strings"
+	"time"
 
 	"github.com/gosimple/slug"
 	"github.com/jinzhu/gorm"
