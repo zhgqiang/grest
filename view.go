@@ -117,6 +117,26 @@ func (this *APIView) FindMany(result interface{}, filter map[string]interface{},
 			}
 		}
 
+		joins, joinsOk := filter["joins"]
+		groups, groupOk := filter["groups"]
+
+		if joinsOk && groupOk {
+			joinArr, joinArrOk := joins.([]interface{})
+			groupArr, groupArrOk := groups.([]interface{})
+			if joinArrOk && groupArrOk {
+				for _, join := range joinArr {
+					if joinStr, ok := join.(string); ok {
+						db = db.Joins(joinStr)
+					}
+				}
+				for _, group := range groupArr {
+					if groupStr, ok := group.(string); ok {
+						db = db.Group(groupStr)
+					}
+				}
+			}
+		}
+
 		// query contains related data
 		if includes, ok := filter["include"]; ok {
 			switch includes.(type) {
