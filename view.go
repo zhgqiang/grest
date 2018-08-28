@@ -3,6 +3,7 @@ package grest
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -48,7 +49,7 @@ func (this *APIView) toPrimaryQueryParams(result interface{}, primaryValue strin
 	return "", []interface{}{}
 }
 
-func (this *APIView) findCount(result interface{}, filter map[string]interface{}, context *Context) (int, error) {
+func (this *APIView) findCount_2(result interface{}, filter map[string]interface{}, context *Context) (int, error) {
 	db := context.GetDB().Begin()
 	db = db.Find(result)
 	if filter != nil {
@@ -71,7 +72,24 @@ func (this *APIView) findCount(result interface{}, filter map[string]interface{}
 	return count, nil
 }
 
-func (this *APIView) FindMany(result interface{}, filter map[string]interface{}, context *Context) (int, error) {
+func (this *APIView) findCount(result interface{}, where []interface{}, context *Context) (int, error) {
+	db := context.GetDB().Begin()
+	db = db.Find(result)
+	if where != nil {
+		if len(where) == 1 {
+			db = db.Where(where[0])
+		} else if len(where) > 1 {
+			db = db.Where(where[0], where[1:]...)
+		}
+	}
+	count := 0
+	if db.Count(&count).Commit(); db.Error != nil {
+		return 0, db.Error
+	}
+	return count, nil
+}
+
+func (this *APIView) FindMany_2(result interface{}, filter map[string]interface{}, context *Context) (int, error) {
 	db := context.GetDB().Begin()
 	var count = 0
 	if filter != nil {
@@ -106,7 +124,7 @@ func (this *APIView) FindMany(result interface{}, filter map[string]interface{},
 		if withCount, ok := filter["withCount"]; ok {
 			if withCountBool, ok := withCount.(bool); ok {
 				if withCountBool {
-					if c, err := this.findCount(result, filter, context); err != nil {
+					if c, err := this.findCount_2(result, filter, context); err != nil {
 						return 0, err
 					} else {
 						count = c
@@ -179,6 +197,77 @@ func (this *APIView) FindMany(result interface{}, filter map[string]interface{},
 
 		// exist offset and limit
 		if offsetOk && limitOk {
+			db = db.Limit(limit).Offset(offset)
+		}
+	}
+	if db.Find(result).Commit(); db.Error != nil {
+		return 0, db.Error
+	}
+	return count, nil
+}
+
+func (this *APIView) FindMany(result interface{}, filter *Filter, context *Context) (int, error) {
+	db := context.GetDB().Begin()
+	var count = 0
+	if filter != nil {
+		// query fields
+		if filter.Fields != nil && len(filter.Fields) > 0 {
+			db = db.Select(filter.Fields)
+		}
+
+		// query result sorting
+		if filter.Order != "" {
+			db = db.Order(filter.Order)
+		}
+
+		// query by where condition
+		if filter.Where != nil && len(filter.Where) > 0 {
+			if len(filter.Where) == 1 {
+				db = db.Where(filter.Where[0])
+			} else if len(filter.Where) > 1 {
+				db = db.Where(filter.Where[0], filter.Where[1:]...)
+			}
+		}
+
+		// whether the query count
+		if c, err := this.findCount(result, filter.Where, context); err != nil {
+			return 0, err
+		} else {
+			count = c
+		}
+
+		if filter.Joins != nil && len(filter.Joins) > 0 {
+			for _, join := range filter.Joins {
+				db = db.Joins(join)
+			}
+		}
+
+		if filter.Groups != nil && len(filter.Groups) > 0 {
+			for _, group := range filter.Groups {
+				db = db.Group(group)
+			}
+		}
+
+		// query contains related data
+		if filter.Preloads != nil && len(filter.Groups) > 0 {
+			if len(filter.Groups) == 1 {
+				db = db.Preload(filter.Groups[0])
+			} else if len(filter.Groups) > 1 {
+				db = db.Preload(filter.Groups[0], filter.Groups[1:])
+			}
+		}
+
+		// query offset
+		// query limit
+		if filter.Offset != "" && filter.Limit != "" {
+			offset, err := strconv.Atoi(filter.Offset)
+			if err != nil {
+				return 0, fmt.Errorf("offset format is incorrect,%v", err.Error())
+			}
+			limit, err := strconv.Atoi(filter.Limit)
+			if err != nil {
+				return 0, fmt.Errorf("limit format is incorrect,%v", err.Error())
+			}
 			db = db.Limit(limit).Offset(offset)
 		}
 	}

@@ -91,7 +91,7 @@ func (g *GenericAPIView) WebService(urlPath string) {
 func (g *GenericAPIView) FindFilter(request *restful.Request, response *restful.Response) {
 	//http.Error(g.cxt.Response, "Method Not Allowed", 405)
 	filter := strings.TrimSpace(request.QueryParameter("filter"))
-	filterMap := make(map[string]interface{})
+	filterMap := new(Filter)
 	if filter != "" {
 		err := json.Unmarshal([]byte(filter), &filterMap)
 		if err != nil {
