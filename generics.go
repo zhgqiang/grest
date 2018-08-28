@@ -93,7 +93,7 @@ func (g *GenericAPIView) FindFilter(request *restful.Request, response *restful.
 	filter := strings.TrimSpace(request.QueryParameter("filter"))
 	filterMap := new(Filter)
 	if filter != "" {
-		err := json.Unmarshal([]byte(filter), &filterMap)
+		err := json.Unmarshal([]byte(filter), filterMap)
 		if err != nil {
 			response.WriteHeaderAndEntity(http.StatusBadRequest, NewErrorMsg(http.StatusBadRequest, "query data", err.Error()))
 			return
