@@ -1,4 +1,4 @@
-package grest
+package grest_test
 
 import (
 	"encoding/json"
@@ -11,10 +11,11 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/zhgqiang/grest"
 )
 
 type User struct {
-	APIView
+	grest.APIView
 	ID        uint      `json:"id" gorm:"primary_key"`
 	Name      string    `json:"name" gorm:"type:varchar(100)"`
 	Age       int       `json:"age" gorm:"type:int(3)"`
@@ -27,7 +28,7 @@ func (User) TableName() string {
 }
 
 type Company struct {
-	APIView
+	grest.APIView
 	ID          uint   `json:"id" gorm:"primary_key"`
 	CompanyName string `json:"companyName" gorm:"type:varchar(100);column:company_name"`
 	Users       []User `json:"users" gorm:"ForeignKey:CompanyId"`
@@ -46,11 +47,11 @@ func TGormDB() *gorm.DB {
 	return db
 }
 
-func TContext() *Context {
-	return (&Context{}).SetDB(TGormDB())
+func TContext() *grest.Context {
+	return (&grest.Context{}).SetDB(TGormDB())
 }
 
-func TSave(cxt *Context, t *testing.T) *User {
+func TSave(cxt *grest.Context, t *testing.T) *User {
 
 	user := new(User)
 
@@ -76,19 +77,56 @@ func TestAPIView_Delete(t *testing.T) {
 	}
 }
 
+func TestAPIView_FindMany_2(t *testing.T) {
+	cxt := TContext()
+	user := new(User)
+
+	// filter := map[string]interface{}{
+	// 	"withCount": true,
+	// 	//"include":   "Users",
+	// 	//"fields":    []interface{}{"id", "companyName"},
+	// 	//"where":     []interface{}{"id=1"},
+	// 	"order":  "name",
+	// 	"offset": 2,
+	// 	"limit":  2,
+	// }
+
+	filter := map[string]interface{}{
+		"fields": []interface{}{"name"},
+	}
+	users := new([]User)
+	s, err := user.FindMany_2(users, filter, cxt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	//t.Logf("count:%d,data:%+v", s, *users)
+	b, _ := json.Marshal(users)
+	t.Logf("find count:%d,data:%+v", s, string(b))
+}
+
 func TestAPIView_FindMany(t *testing.T) {
 	cxt := TContext()
 	user := new(User)
 
-	filter := map[string]interface{}{
-		"withCount": true,
-		//"include":   "Users",
-		//"fields":    []interface{}{"id", "companyName"},
-		//"where":     []interface{}{"id=1"},
-		"order":  "name",
-		"offset": 2,
-		"limit":  2,
+	filter := &grest.Filter{WithCount: true, Order: "name", Offset: "2", Limit: "2"}
+	// ws := make([]interface{}, 0)
+	// filter := &grest.Filter{WithCount: true, Where: ws, Order: ""}
+	// filter := &grest.Filter{Fields: []string{"name"}}
+	users := new([]User)
+	s, err := user.FindMany(users, filter, cxt)
+	if err != nil {
+		t.Fatal(err)
 	}
+	//t.Logf("count:%d,data:%+v", s, *users)
+	b, _ := json.Marshal(users)
+	t.Logf("find count:%d,data:%+v", s, string(b))
+}
+
+func TestAPIView_FindMany_3(t *testing.T) {
+	cxt := TContext()
+	user := new(User)
+
+	filter := &grest.Filter{Fields: []string{"name"}}
 	users := new([]User)
 	s, err := user.FindMany(users, filter, cxt)
 	if err != nil {

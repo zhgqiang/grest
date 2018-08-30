@@ -36,8 +36,8 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	g := etrest.GenericAPIView{}
-	cxt := new(etrest.Context).SetDB(db)
+	g := grest.GenericAPIView{}
+	cxt := new(grest.Context).SetDB(db)
 	g.Init(cxt, u)
 	g.WebService("users")
 	restful.Add(g.WS)
