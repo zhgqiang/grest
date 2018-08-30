@@ -8,10 +8,11 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// APIView Model construct
 type APIView struct{}
 
-// ToPrimaryQueryParams generate query params based on primary key, multiple primary value are linked with a comma
-func (this *APIView) toPrimaryQueryParams(result interface{}, primaryValue string, context *Context) (string, []interface{}) {
+// toPrimaryQueryParams generate query params based on primary key, multiple primary value are linked with a comma
+func (p *APIView) toPrimaryQueryParams(result interface{}, primaryValue string, context *Context) (string, []interface{}) {
 	if primaryValue != "" {
 		scope := context.GetDB().NewScope(result)
 
@@ -48,7 +49,9 @@ func (this *APIView) toPrimaryQueryParams(result interface{}, primaryValue strin
 	return "", []interface{}{}
 }
 
-func (this *APIView) findCount_2(result interface{}, filter map[string]interface{}, context *Context) (int, error) {
+// findCount2 query data count
+// NOTE: not use
+func (p *APIView) findCount2(result interface{}, filter map[string]interface{}, context *Context) (int, error) {
 	db := context.GetDB().Begin()
 	db = db.Find(result)
 	if filter != nil {
@@ -71,7 +74,8 @@ func (this *APIView) findCount_2(result interface{}, filter map[string]interface
 	return count, nil
 }
 
-func (this *APIView) findCount(result interface{}, where []interface{}, context *Context) (int, error) {
+// findCount query data count
+func (p *APIView) findCount(result interface{}, where []interface{}, context *Context) (int, error) {
 	db := context.GetDB().Begin()
 	db = db.Find(result)
 	if where != nil {
@@ -88,7 +92,9 @@ func (this *APIView) findCount(result interface{}, where []interface{}, context 
 	return count, nil
 }
 
-func (this *APIView) FindMany_2(result interface{}, filter map[string]interface{}, context *Context) (int, error) {
+// FindMany2 query data
+// NOTE: not use
+func (p *APIView) FindMany2(result interface{}, filter map[string]interface{}, context *Context) (int, error) {
 	db := context.GetDB().Begin()
 	var count = 0
 	if filter != nil {
@@ -123,11 +129,11 @@ func (this *APIView) FindMany_2(result interface{}, filter map[string]interface{
 		if withCount, ok := filter["withCount"]; ok {
 			if withCountBool, ok := withCount.(bool); ok {
 				if withCountBool {
-					if c, err := this.findCount_2(result, filter, context); err != nil {
+					c, err := p.findCount2(result, filter, context)
+					if err != nil {
 						return 0, err
-					} else {
-						count = c
 					}
+					count = c
 				}
 			} else {
 				return 0, errors.New("withCount format is incorrect, non-bool")
@@ -205,7 +211,8 @@ func (this *APIView) FindMany_2(result interface{}, filter map[string]interface{
 	return count, nil
 }
 
-func (this *APIView) FindMany(result interface{}, filter *Filter, context *Context) (int, error) {
+// FindMany query data
+func (p *APIView) FindMany(result interface{}, filter *Filter, context *Context) (int, error) {
 	db := context.GetDB().Begin()
 	var count = 0
 	if filter != nil {
@@ -229,11 +236,11 @@ func (this *APIView) FindMany(result interface{}, filter *Filter, context *Conte
 		}
 
 		// whether the query count
-		if c, err := this.findCount(result, filter.Where, context); err != nil {
+		c, err := p.findCount(result, filter.Where, context)
+		if err != nil {
 			return 0, err
-		} else {
-			count = c
 		}
+		count = c
 
 		if filter.Joins != nil && len(filter.Joins) > 0 {
 			for _, join := range filter.Joins {
@@ -281,16 +288,17 @@ func (this *APIView) FindMany(result interface{}, filter *Filter, context *Conte
 	return count, nil
 }
 
-func (this *APIView) Save(result interface{}, context *Context) error {
+// Save is Model create
+func (p *APIView) Save(result interface{}, context *Context) error {
 	if context.GetDB().NewScope(result).PrimaryKeyZero() {
 		return context.GetDB().Create(result).Error
-	} else {
-		return context.GetDB().Save(result).Error
 	}
+	return context.GetDB().Save(result).Error
 }
 
-func (this *APIView) FindOne(result interface{}, context *Context) error {
-	primaryQuerySQL, primaryParams := this.toPrimaryQueryParams(result, context.ResourceID, context)
+// FindOne Model query one data
+func (p *APIView) FindOne(result interface{}, context *Context) error {
+	primaryQuerySQL, primaryParams := p.toPrimaryQueryParams(result, context.ResourceID, context)
 
 	if primaryQuerySQL != "" {
 		return context.GetDB().First(result, append([]interface{}{primaryQuerySQL}, primaryParams...)...).Error
@@ -299,7 +307,8 @@ func (this *APIView) FindOne(result interface{}, context *Context) error {
 	return errors.New("failed to find")
 }
 
-func (this *APIView) Delete(result interface{}, context *Context) error {
+// Delete Model delete one data
+func (p *APIView) Delete(result interface{}, context *Context) error {
 	if !context.GetDB().Find(result).RecordNotFound() {
 		return context.GetDB().Delete(result).Error
 	}

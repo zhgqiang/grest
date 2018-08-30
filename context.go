@@ -5,6 +5,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// Context ...
 type Context struct {
 	DB         *gorm.DB
 	ResourceID string

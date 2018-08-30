@@ -75,7 +75,7 @@ func HumanizeString(str string) string {
 	return strings.Title(string(human))
 }
 
-//  e.g. "Order" -> "order"
+// FirstCharToLow e.g. "Order" -> "order"
 func FirstCharToLow(str string) string {
 	b := bytes.Buffer{}
 	for i, l := range str {
@@ -392,6 +392,7 @@ func SliceUniq(s []string) []string {
 	return s
 }
 
+// DataType is judge data type
 func DataType(t string) string {
 	switch t {
 	case "uint":
@@ -423,10 +424,10 @@ func DataType(t string) string {
 	}
 }
 
-func GetStructTagJson(f *gorm.Field) string {
+// GetStructTagJSON is return tag
+func GetStructTagJSON(f *gorm.Field) string {
 	if string(f.Tag.Get("json")) == "" {
 		return f.Name
-	} else {
-		return string(f.Tag.Get("json"))
 	}
+	return string(f.Tag.Get("json"))
 }

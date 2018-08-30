@@ -95,7 +95,7 @@ func TestAPIView_FindMany_2(t *testing.T) {
 		"fields": []interface{}{"name"},
 	}
 	users := new([]User)
-	s, err := user.FindMany_2(users, filter, cxt)
+	s, err := user.FindMany2(users, filter, cxt)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/emicklei/go-restful-openapi"
 )
 
+// Generic is service interface
 type Generic interface {
 	Init(cxt *Context, value interface{})
 	FindFilter(request *restful.Request, response *restful.Response)
@@ -23,8 +24,10 @@ type Generic interface {
 	WebService(urlPath string)
 }
 
+// FilterFunction is filter function
 type FilterFunction func()
 
+// GenericAPIView is model
 type GenericAPIView struct {
 	APIView
 	cxt              *Context
@@ -35,7 +38,7 @@ type GenericAPIView struct {
 	containerFilters FilterFunction
 }
 
-// init cxt model
+// Init is GenericAPIView init
 func (g *GenericAPIView) Init(cxt *Context, value interface{}) {
 	g.cxt = cxt
 	g.WS = new(restful.WebService)
@@ -54,6 +57,7 @@ func (g *GenericAPIView) Init(cxt *Context, value interface{}) {
 	}
 }
 
+// WebService is create web service
 func (g *GenericAPIView) WebService(urlPath string) {
 	if g.WS == nil {
 		g.WS = new(restful.WebService)

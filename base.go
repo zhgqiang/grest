@@ -1,5 +1,6 @@
 package grest
 
+// View is interface
 type View interface {
 	FindMany(interface{}, map[string]interface{}, *Context) (int, error)
 	Save(interface{}, *Context) error
