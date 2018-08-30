@@ -108,7 +108,7 @@ func TestAPIView_FindMany(t *testing.T) {
 	cxt := TContext()
 	user := new(User)
 
-	filter := &grest.Filter{WithCount: true, Order: "name", Offset: "2", Limit: "2"}
+	filter := &grest.Filter{WithCount: true, Order: "name", Offset: 2, Limit: 2}
 	// ws := make([]interface{}, 0)
 	// filter := &grest.Filter{WithCount: true, Where: ws, Order: ""}
 	// filter := &grest.Filter{Fields: []string{"name"}}
@@ -127,6 +127,21 @@ func TestAPIView_FindMany_3(t *testing.T) {
 	user := new(User)
 
 	filter := &grest.Filter{Fields: []string{"name"}}
+	users := new([]User)
+	s, err := user.FindMany(users, filter, cxt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	//t.Logf("count:%d,data:%+v", s, *users)
+	b, _ := json.Marshal(users)
+	t.Logf("find count:%d,data:%+v", s, string(b))
+}
+
+func TestAPIView_FindMany_4(t *testing.T) {
+	cxt := TContext()
+	user := new(User)
+
+	filter := &grest.Filter{WithCount: true, Order: "name", Offset: 0, Limit: 2}
 	users := new([]User)
 	s, err := user.FindMany(users, filter, cxt)
 	if err != nil {

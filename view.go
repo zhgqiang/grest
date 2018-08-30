@@ -3,7 +3,6 @@ package grest
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -259,16 +258,21 @@ func (this *APIView) FindMany(result interface{}, filter *Filter, context *Conte
 
 		// query offset
 		// query limit
-		if filter.Offset != "" && filter.Limit != "" {
-			offset, err := strconv.Atoi(filter.Offset)
-			if err != nil {
-				return 0, fmt.Errorf("offset format is incorrect,%v", err.Error())
-			}
-			limit, err := strconv.Atoi(filter.Limit)
-			if err != nil {
-				return 0, fmt.Errorf("limit format is incorrect,%v", err.Error())
-			}
-			db = db.Limit(limit).Offset(offset)
+		// if filter.Offset != "" && filter.Limit != "" {
+		// 	offset, err := strconv.Atoi(filter.Offset)
+		// 	if err != nil {
+		// 		return 0, fmt.Errorf("offset format is incorrect,%v", err.Error())
+		// 	}
+		// 	limit, err := strconv.Atoi(filter.Limit)
+		// 	if err != nil {
+		// 		return 0, fmt.Errorf("limit format is incorrect,%v", err.Error())
+		// 	}
+		// 	db = db.Limit(limit).Offset(offset)
+		// }
+
+		if filter.Limit != 0 {
+			db = db.Limit(filter.Limit)
+			db = db.Offset(filter.Offset)
 		}
 	}
 	if db.Find(result).Commit(); db.Error != nil {

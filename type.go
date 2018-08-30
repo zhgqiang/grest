@@ -9,6 +9,6 @@ type Filter struct {
 	Joins     []string      `json:"joins"`
 	Groups    []string      `json:"groups"`
 	Preloads  []string      `json:"preloads"`
-	Offset    string        `json:"offset"`
-	Limit     string        `json:"limit"`
+	Offset    int           `json:"offset"`
+	Limit     int           `json:"limit"`
 }
