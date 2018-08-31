@@ -2,29 +2,27 @@ package grest_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
-	"os"
-	"path"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/zhgqiang/grest"
 )
 
 type User struct {
 	grest.APIView
-	ID        uint      `json:"id" gorm:"primary_key"`
-	Name      string    `json:"name" gorm:"type:varchar(100)"`
-	Age       int       `json:"age" gorm:"type:int(3)"`
-	Birthday  time.Time `json:"birthday" gorm:"type:varchar(200)"`
-	CompanyId uint      `json:"companyId"`
+	ID   uint   `json:"id,omitempty" gorm:"primary_key"`
+	Name string `json:"name,omitempty" gorm:"type:varchar(100)"`
+	// Age       int       `json:"age,omitempty" gorm:"type:int(3)"`
+	// Birthday  time.Time `json:"birthday,omitempty" gorm:"type:varchar(200)"`
+	CompanyId uint `json:"companyId,omitempty"`
 }
 
 func (User) TableName() string {
-	return "t_user"
+	return "user"
 }
 
 type Company struct {
@@ -35,12 +33,12 @@ type Company struct {
 }
 
 func (Company) TableName() string {
-	return "t_company"
+	return "company"
 }
 
 func TGormDB() *gorm.DB {
-	root := os.Getenv("GOPATH")
-	db, err := gorm.Open("sqlite3", path.Join(root, "src/etstone.cn/etrest/testdata/data.db"))
+	// root := os.Getenv("GOPATH")
+	db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local", "root", "dell@123", "101.200.39.236", 3306, "gorm"))
 	if err != nil {
 		log.Panic(err)
 	}
@@ -55,7 +53,7 @@ func TSave(cxt *grest.Context, t *testing.T) *User {
 
 	user := new(User)
 
-	u := &User{Name: "test16", Age: 16, Birthday: time.Now(), CompanyId: 1}
+	u := &User{Name: "test16", CompanyId: 1}
 	err := user.Save(u, cxt)
 	if err != nil {
 		t.Fatal(err)
