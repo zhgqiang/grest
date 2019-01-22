@@ -94,7 +94,17 @@ func (p *APIView) findCount(result interface{}, where []interface{}, context *Co
 		}
 	}
 	count := 0
-	if db.Count(&count).Commit(); db.Error != nil {
+	if db.Error != nil {
+		return 0, db.Error
+	}
+	db = db.Count(&count)
+	if db == nil {
+		return 0, errors.New("db is nil")
+	}
+	if db.Error != nil {
+		return 0, db.Error
+	}
+	if db.Commit(); db.Error != nil {
 		return 0, db.Error
 	}
 	return count, nil
@@ -298,7 +308,14 @@ func (p *APIView) FindMany(result interface{}, filter *Filter, context *Context)
 			db = db.Offset(filter.Offset)
 		}
 	}
-	if db.Find(result).Commit(); db.Error != nil {
+	db = db.Find(result)
+	if db == nil {
+		return 0, errors.New("db is nil")
+	}
+	if db.Error != nil {
+		return 0, db.Error
+	}
+	if db.Commit(); db.Error != nil {
 		return 0, db.Error
 	}
 	return count, nil
