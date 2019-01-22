@@ -52,7 +52,11 @@ func (p *APIView) toPrimaryQueryParams(result interface{}, primaryValue string, 
 // findCount2 query data count
 // NOTE: not use
 func (p *APIView) findCount2(result interface{}, filter map[string]interface{}, context *Context) (int, error) {
-	db := context.GetDB().Begin()
+	db := context.GetDB()
+	if db == nil {
+		return 0, errors.New("db is nil")
+	}
+	db = db.Begin()
 	db = db.Find(result)
 	if filter != nil {
 		if where, ok := filter["where"]; ok {
@@ -76,7 +80,11 @@ func (p *APIView) findCount2(result interface{}, filter map[string]interface{}, 
 
 // findCount query data count
 func (p *APIView) findCount(result interface{}, where []interface{}, context *Context) (int, error) {
-	db := context.GetDB().Begin()
+	db := context.GetDB()
+	if db == nil {
+		return 0, errors.New("db is nil")
+	}
+	db = db.Begin()
 	db = db.Find(result)
 	if where != nil {
 		if len(where) == 1 {
@@ -95,7 +103,11 @@ func (p *APIView) findCount(result interface{}, where []interface{}, context *Co
 // FindMany2 query data
 // NOTE: not use
 func (p *APIView) FindMany2(result interface{}, filter map[string]interface{}, context *Context) (int, error) {
-	db := context.GetDB().Begin()
+	db := context.GetDB()
+	if db == nil {
+		return 0, errors.New("db is nil")
+	}
+	db = db.Begin()
 	var count = 0
 	if filter != nil {
 		// query fields
@@ -213,7 +225,11 @@ func (p *APIView) FindMany2(result interface{}, filter map[string]interface{}, c
 
 // FindMany query data
 func (p *APIView) FindMany(result interface{}, filter *Filter, context *Context) (int, error) {
-	db := context.GetDB().Begin()
+	db := context.GetDB()
+	if db == nil {
+		return 0, errors.New("db is nil")
+	}
+	db = db.Begin()
 	var count = 0
 	if filter != nil {
 		// query fields
@@ -290,18 +306,25 @@ func (p *APIView) FindMany(result interface{}, filter *Filter, context *Context)
 
 // Save is Model create
 func (p *APIView) Save(result interface{}, context *Context) error {
-	if context.GetDB().NewScope(result).PrimaryKeyZero() {
-		return context.GetDB().Create(result).Error
+	db := context.GetDB()
+	if db == nil {
+		return errors.New("db is nil")
 	}
-	return context.GetDB().Save(result).Error
+	if db.NewScope(result).PrimaryKeyZero() {
+		return db.Create(result).Error
+	}
+	return db.Save(result).Error
 }
 
 // FindOne Model query one data
 func (p *APIView) FindOne(result interface{}, context *Context) error {
 	primaryQuerySQL, primaryParams := p.toPrimaryQueryParams(result, context.ResourceID, context)
-
+	db := context.GetDB()
+	if db == nil {
+		return errors.New("db is nil")
+	}
 	if primaryQuerySQL != "" {
-		return context.GetDB().First(result, append([]interface{}{primaryQuerySQL}, primaryParams...)...).Error
+		return db.First(result, append([]interface{}{primaryQuerySQL}, primaryParams...)...).Error
 	}
 
 	return errors.New("failed to find")
@@ -309,8 +332,12 @@ func (p *APIView) FindOne(result interface{}, context *Context) error {
 
 // Delete Model delete one data
 func (p *APIView) Delete(result interface{}, context *Context) error {
-	if !context.GetDB().Find(result).RecordNotFound() {
-		return context.GetDB().Delete(result).Error
+	db := context.GetDB()
+	if db == nil {
+		return errors.New("db is nil")
+	}
+	if !db.Find(result).RecordNotFound() {
+		return db.Delete(result).Error
 	}
 	return gorm.ErrRecordNotFound
 }
