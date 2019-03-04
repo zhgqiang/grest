@@ -1,8 +1,9 @@
-package grest
+package common
 
 import (
 	"bytes"
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -13,6 +14,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -154,23 +156,6 @@ func JoinURL(originalURL string, paths ...interface{}) (joinedURL string, err er
 	return
 }
 
-// SetCookie set cookie for context
-//func SetCookie(cookie http.Cookie, context *Context) {
-//	cookie.HttpOnly = true
-//
-//	// set https cookie
-//	if context.Request != nil && context.Request.URL.Scheme == "https" {
-//		cookie.Secure = true
-//	}
-//
-//	// set default path
-//	if cookie.Path == "" {
-//		cookie.Path = "/"
-//	}
-//
-//	http.SetCookie(context.Writer, &cookie)
-//}
-
 // Stringify stringify any data, if it is a struct, will try to use its Name, Title, Code field, else will use its primary key
 func Stringify(object interface{}) string {
 	if obj, ok := object.(interface {
@@ -269,46 +254,13 @@ func filenameWithLineNum() string {
 	return ""
 }
 
-// GetLocale get locale from request, cookie, after get the locale, will write the locale to the cookie if possible
-// Overwrite the default logic with
-//     utils.GetLocale = func(context *qor.Context) string {
-//         // ....
-//     }
-//var GetLocale = func(context *Context) string {
-//	if locale := context.Request.Header.Get("Locale"); locale != "" {
-//		return locale
-//	}
-//
-//	if locale := context.Request.URL.Query().Get("locale"); locale != "" {
-//		if context.Writer != nil {
-//			context.Request.Header.Set("Locale", locale)
-//			SetCookie(http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0)}, context)
-//		}
-//		return locale
-//	}
-//
-//	if locale, err := context.Request.Cookie("locale"); err == nil {
-//		return locale.Value
-//	}
-//
-//	return ""
-//}
-
 // ParseTime parse time from string
-// Overwrite the default logic with
-//     utils.ParseTime = func(timeStr string, context *qor.Context) (time.Time, error) {
-//         // ....
-//     }
-var ParseTime = func(timeStr string, context *Context) (time.Time, error) {
+var ParseTime = func(timeStr string) (time.Time, error) {
 	return now.Parse(timeStr)
 }
 
 // FormatTime format time to string
-// Overwrite the default logic with
-//     utils.FormatTime = func(time time.Time, format string, context *qor.Context) string {
-//         // ....
-//     }
-var FormatTime = func(date time.Time, format string, context *Context) string {
+var FormatTime = func(date time.Time, format string) string {
 	return date.Format(format)
 }
 
@@ -392,42 +344,101 @@ func SliceUniq(s []string) []string {
 	return s
 }
 
-// DataType is judge data type
-func DataType(t string) string {
-	switch t {
-	case "uint":
-		return "integer"
-	case "uint8":
-		return "integer"
-	case "uint16":
-		return "integer"
-	case "uint32":
-		return "integer"
-	case "uint64":
-		return "integer"
-	case "int":
-		return "integer"
-	case "int8":
-		return "integer"
-	case "int16":
-		return "integer"
-	case "int32":
-		return "integer"
-	case "int64":
-		return "integer"
-	case "float32":
-		return "float"
-	case "float64":
-		return "float"
-	default:
-		return t
-	}
-}
-
 // GetStructTagJSON is return tag
 func GetStructTagJSON(f *gorm.Field) string {
 	if string(f.Tag.Get("json")) == "" {
 		return f.Name
 	}
 	return string(f.Tag.Get("json"))
+}
+
+// NewResponseMsg 创建求响应消息
+func NewResponseMsg(msg interface{}) map[string]interface{} {
+	return map[string]interface{}{"name": msg}
+}
+
+// Struct2Map 将结构体转为map
+func Struct2Map(obj interface{}) map[string]interface{} {
+	t := reflect.TypeOf(obj)
+	v := reflect.ValueOf(obj)
+
+	var data = make(map[string]interface{})
+	for i := 0; i < t.NumField(); i++ {
+		data[t.Field(i).Name] = v.Field(i).Interface()
+	}
+	return data
+}
+
+// FillStruct 用map填充结构
+func FillStruct(data map[string]interface{}, obj interface{}) error {
+	for k, v := range data {
+		err := SetField(obj, k, v)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// SetField 用map的值替换结构的值
+func SetField(obj interface{}, name string, value interface{}) error {
+	structValue := reflect.ValueOf(obj).Elem()        //结构体属性值
+	structFieldValue := structValue.FieldByName(name) //结构体单个属性值
+
+	if !structFieldValue.IsValid() {
+		return fmt.Errorf("No such field: %s in obj", name)
+	}
+
+	if !structFieldValue.CanSet() {
+		return fmt.Errorf("Cannot set %s field value", name)
+	}
+
+	structFieldType := structFieldValue.Type() //结构体的类型
+	val := reflect.ValueOf(value)              //map值的反射值
+
+	var err error
+	if structFieldType != val.Type() {
+		val, err = TypeConversion(fmt.Sprintf("%v", value), structFieldValue.Type().Name()) //类型转换
+		if err != nil {
+			return err
+		}
+	}
+
+	structFieldValue.Set(val)
+	return nil
+}
+
+// TypeConversion 类型转换
+func TypeConversion(value string, ntype string) (reflect.Value, error) {
+	if ntype == "string" {
+		return reflect.ValueOf(value), nil
+	} else if ntype == "time.Time" {
+		t, err := time.ParseInLocation("2006-01-02 15:04:05", value, time.Local)
+		return reflect.ValueOf(t), err
+	} else if ntype == "Time" {
+		t, err := time.ParseInLocation("2006-01-02 15:04:05", value, time.Local)
+		return reflect.ValueOf(t), err
+	} else if ntype == "int" {
+		i, err := strconv.Atoi(value)
+		return reflect.ValueOf(i), err
+	} else if ntype == "int8" {
+		i, err := strconv.ParseInt(value, 10, 64)
+		return reflect.ValueOf(int8(i)), err
+	} else if ntype == "int32" {
+		i, err := strconv.ParseInt(value, 10, 64)
+		return reflect.ValueOf(int64(i)), err
+	} else if ntype == "int64" {
+		i, err := strconv.ParseInt(value, 10, 64)
+		return reflect.ValueOf(i), err
+	} else if ntype == "float32" {
+		i, err := strconv.ParseFloat(value, 64)
+		return reflect.ValueOf(float32(i)), err
+	} else if ntype == "float64" {
+		i, err := strconv.ParseFloat(value, 64)
+		return reflect.ValueOf(i), err
+	}
+
+	//else if .......增加其他一些类型的转换
+
+	return reflect.ValueOf(value), errors.New("未知的类型：" + ntype)
 }
